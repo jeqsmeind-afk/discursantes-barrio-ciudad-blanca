@@ -29,7 +29,7 @@
         /* Tarjetas Directorio */
         .card { background: white; border: 1px solid #dadce0; border-radius: 4px; padding: 16px; margin-bottom: 12px; position: relative; }
         .card .name { font-size: 1.15em; font-weight: 500; color: #202124; margin-bottom: 12px; padding-right: 90px; }
-        .info-grid { display: flex; flex-wrap: wrap; gap: 15px; }
+        .info-grid { display: flex; flex-wrap: wrap; gap: 25px; }
         .info-item { display: flex; flex-direction: column; gap: 2px; }
         .info-item span.label { font-size: 0.7em; text-transform: uppercase; color: #70757a; font-weight: 600; }
         .info-item span.value { font-size: 0.9em; color: #3c4043; }
@@ -118,14 +118,29 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbw_73dkyDLwga1r_kMxPNX5QA0PyBIYTcjirDUCxMDwv46zLLDAextABAzL_shn0o8/exec';
 
         let datosGlobales = { miembros: [], historial: [] };
-        let filtroActual = 'todos'; // Variable para recordar qué pestaña de filtro está activa
+        let filtroActual = 'todos';
+
+        // Función para calcular la edad dinámicamente
+        function calcularEdad(fechaNacimiento) {
+            if (!fechaNacimiento) return "--";
+            const partes = fechaNacimiento.split('/');
+            if (partes.length !== 3) return "--";
+            const fechaNac = new Date(partes[2], partes[1] - 1, partes[0]);
+            const hoy = new Date();
+            let edad = hoy.getFullYear() - fechaNac.getFullYear();
+            const mes = hoy.getMonth() - fechaNac.getMonth();
+            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+                edad--;
+            }
+            return edad;
+        }
 
         function cargarDatos() {
             fetch(API_URL)
                 .then(response => response.json())
                 .then(data => {
                     datosGlobales = data;
-                    filtrarYBuscar(); // Dibuja la lista aplicando el filtro y búsqueda actual
+                    filtrarYBuscar();
                     renderizarCalendario(datosGlobales.historial);
                 });
         }
@@ -157,6 +172,8 @@
                 const div = document.createElement('div');
                 div.className = 'card';
                 const esUrgente = miembro.ultimoDiscurso === "";
+                const edadCalculada = calcularEdad(miembro.nacimiento);
+                
                 const estadoHtml = esUrgente 
                     ? `<span class="value status-urgent">Sin registro</span>`
                     : `<span class="value status-ok">${miembro.ultimoDiscurso}</span>`;
@@ -166,6 +183,7 @@
                     <div class="name">${miembro.nombre}</div>
                     <div class="info-grid">
                         <div class="info-item"><span class="label">Sexo</span><span class="value">${miembro.sexo}</span></div>
+                        <div class="info-item"><span class="label">Edad</span><span class="value">${edadCalculada} años</span></div>
                         <div class="info-item"><span class="label">Último</span>${estadoHtml}</div>
                     </div>
                 `;
@@ -202,7 +220,6 @@
             }
         }
 
-        // CONTROL DE FILTROS Y BÚSQUEDA COMBINADOS
         function setFiltro(tipo, botonClicado) {
             document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('activo'));
             botonClicado.classList.add('activo');
@@ -213,13 +230,11 @@
         function filtrarYBuscar() {
             const textoBusqueda = document.getElementById('input-busqueda').value.toLowerCase().trim();
             
-            // 1. Filtrar por categoría (Todos / Urgentes / Asignados)
             let lista = [];
             if (filtroActual === 'todos') lista = datosGlobales.miembros;
             else if (filtroActual === 'sugerencias') lista = datosGlobales.miembros.filter(m => m.ultimoDiscurso === "");
             else if (filtroActual === 'recientes') lista = datosGlobales.miembros.filter(m => m.ultimoDiscurso !== "");
 
-            // 2. Filtrar por lo que se va escribiendo en el buscador
             if (textoBusqueda !== "") {
                 lista = lista.filter(m => m.nombre.toLowerCase().includes(textoBusqueda));
             }
@@ -227,7 +242,6 @@
             renderizarDirectorio(lista);
         }
 
-        // MODAL Y ACCIONES
         function abrirModal(nombre) {
             document.getElementById('modal-nombre').value = nombre;
             document.getElementById('modal-nombre-text').innerText = nombre;
