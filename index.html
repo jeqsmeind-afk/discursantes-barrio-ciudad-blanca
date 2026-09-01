@@ -11,48 +11,52 @@
         .top-bar .unit-info { font-size: 0.8em; color: #b3c2cb; }
         .container { padding: 20px; max-width: 800px; margin: 0 auto; }
         
-        /* Navegación Principal */
         .nav-tabs { display: flex; gap: 20px; border-bottom: 2px solid #dadce0; margin-bottom: 20px; }
         .nav-tab { background: none; border: none; font-size: 1.1em; color: #5f6368; cursor: pointer; padding: 10px 0; font-weight: 400; position: relative; }
         .nav-tab.activo { color: #002d42; font-weight: 600; }
         .nav-tab.activo::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px; background-color: #007c8f; }
 
-        /* Barra de Búsqueda */
-        .search-box { width: 100%; padding: 12px 15px; font-size: 1em; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; margin-bottom: 15px; outline: none; transition: border-color 0.2s; }
+        /* Contenedor del buscador con botón X */
+        .search-container { position: relative; margin-bottom: 15px; }
+        .search-box { width: 100%; padding: 12px 40px 12px 15px; font-size: 1em; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; outline: none; transition: border-color 0.2s; background: white; }
         .search-box:focus { border-color: #007c8f; box-shadow: 0 0 0 2px rgba(0,124,143,0.1); }
+        .clear-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.2em; color: #aaa; cursor: pointer; display: none; }
+        .clear-btn:hover { color: #333; }
 
-        /* Filtros de la lista */
         .filtros { display: flex; gap: 15px; margin-bottom: 20px; overflow-x: auto; }
         .btn-filtro { background: #e8eaed; border: none; border-radius: 15px; font-size: 0.85em; color: #3c4043; cursor: pointer; padding: 6px 12px; white-space: nowrap; }
         .btn-filtro.activo { background: #007c8f; color: white; }
 
-        /* Tarjetas Directorio */
-        .card { background: white; border: 1px solid #dadce0; border-radius: 4px; padding: 16px; margin-bottom: 12px; position: relative; }
+        /* Tarjetas */
+        .card { background: white; border: 1px solid #dadce0; border-radius: 4px; padding: 16px; margin-bottom: 12px; position: relative; transition: border-left 0.2s; }
+        .card.asignado { border-left: 5px solid #1e8e3e; background-color: #fcfdfc; }
+        .card.urgente { border-left: 5px solid #d93025; }
+
         .card .name { font-size: 1.15em; font-weight: 500; color: #202124; margin-bottom: 12px; padding-right: 90px; }
         .info-grid { display: flex; flex-wrap: wrap; gap: 25px; }
         .info-item { display: flex; flex-direction: column; gap: 2px; }
         .info-item span.label { font-size: 0.7em; text-transform: uppercase; color: #70757a; font-weight: 600; }
         .info-item span.value { font-size: 0.9em; color: #3c4043; }
         
-        /* Botón de Asignar Directo */
         .btn-asignar-inline { position: absolute; top: 16px; right: 16px; background-color: white; color: #007c8f; border: 1px solid #007c8f; padding: 5px 10px; border-radius: 3px; font-size: 0.8em; cursor: pointer; font-weight: 600; }
         .btn-asignar-inline:active { background-color: #f0f8f9; }
 
-        /* Estilos del Calendario */
         .timeline-date { font-weight: 600; color: #002d42; margin-top: 20px; margin-bottom: 10px; font-size: 1.1em; border-bottom: 1px solid #dadce0; padding-bottom: 5px; }
         .timeline-item { background: white; border-left: 4px solid #007c8f; padding: 10px 15px; margin-bottom: 10px; border-radius: 0 4px 4px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .timeline-item .speaker { font-weight: 500; color: #202124; margin-bottom: 4px; }
         .timeline-item .topic { font-size: 0.85em; color: #5f6368; }
 
-        /* Modal (Ventana emergente) */
+        /* Modal */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
         .modal { background: white; padding: 20px; border-radius: 6px; width: 90%; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .modal h3 { margin-top: 0; color: #002d42; }
         .modal label { display: block; margin-top: 15px; font-size: 0.85em; font-weight: 600; color: #5f6368; }
         .modal input { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        .error-fecha { color: #d93025; font-size: 0.75em; margin-top: 4px; display: none; }
         .modal-actions { margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px; }
         .btn-cancelar { background: none; border: none; color: #5f6368; cursor: pointer; font-weight: 500; }
         .btn-guardar { background: #007c8f; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-weight: 500; }
+        .btn-guardar:disabled { background: #ccc; cursor: not-allowed; }
         
         .status-urgent { color: #d93025; font-weight: 500; }
         .status-ok { color: #1e8e3e; font-weight: 500; }
@@ -67,16 +71,17 @@
     </div>
 
     <div class="container">
-        <!-- Navegación Principal -->
         <div class="nav-tabs">
             <button class="nav-tab activo" onclick="cambiarPestana('directorio', this)">Directorio</button>
             <button class="nav-tab" onclick="cambiarPestana('calendario', this)">Calendario</button>
         </div>
 
-        <!-- VISTA: DIRECTORIO -->
         <div id="vista-directorio">
-            <!-- Barra de Búsqueda -->
-            <input type="text" id="input-busqueda" class="search-box" placeholder="🔍 Buscar miembro por nombre..." oninput="filtrarYBuscar()">
+            <!-- Buscador con botón X -->
+            <div class="search-container">
+                <input type="text" id="input-busqueda" class="search-box" placeholder="🔍 Buscar miembro por nombre..." oninput="manejarBusqueda()">
+                <button id="btn-limpiar" class="clear-btn" onclick="limpiarBusqueda()">×</button>
+            </div>
 
             <div class="filtros">
                 <button class="btn-filtro activo" onclick="setFiltro('todos', this)">Todos</button>
@@ -86,22 +91,22 @@
             <div id="lista-miembros" style="color: #5f6368;">Cargando base de datos...</div>
         </div>
 
-        <!-- VISTA: CALENDARIO -->
         <div id="vista-calendario" class="oculto">
             <div id="lista-calendario" style="color: #5f6368;">Cargando calendario...</div>
         </div>
     </div>
 
-    <!-- VENTANA EMERGENTE PARA ASIGNAR -->
+    <!-- Modal con validación de domingos -->
     <div class="modal-overlay" id="modal">
         <div class="modal">
-            <h3>Asignar Discurso</h3>
+            <h3 id="modal-titulo">Asignar Discurso</h3>
             <p id="modal-nombre-text" style="margin: 0; font-size: 1.1em; color: #007c8f; font-weight: 600;"></p>
             
             <input type="hidden" id="modal-nombre">
             
-            <label>Fecha de la reunión</label>
-            <input type="date" id="modal-fecha" required>
+            <label>Fecha de la reunión (Solo Domingos)</label>
+            <input type="date" id="modal-fecha" onchange="validarDomingo(this)" required>
+            <span id="error-domingo" class="error-fecha">⚠️ La fecha seleccionada no es domingo. Por favor elige un domingo.</span>
             
             <label>Tema del discurso</label>
             <input type="text" id="modal-tema" placeholder="Ej: Arrepentimiento, Fe, etc." required>
@@ -114,13 +119,11 @@
     </div>
 
     <script>
-        // PEGA AQUÍ TU ENLACE DE APPS SCRIPT
         const API_URL = 'https://script.google.com/macros/s/AKfycbw_73dkyDLwga1r_kMxPNX5QA0PyBIYTcjirDUCxMDwv46zLLDAextABAzL_shn0o8/exec';
 
         let datosGlobales = { miembros: [], historial: [] };
         let filtroActual = 'todos';
 
-        // Función para calcular la edad dinámicamente
         function calcularEdad(fechaNacimiento) {
             if (!fechaNacimiento) return "--";
             const partes = fechaNacimiento.split('/');
@@ -170,21 +173,23 @@
 
             datos.forEach(miembro => {
                 const div = document.createElement('div');
-                div.className = 'card';
                 const esUrgente = miembro.ultimoDiscurso === "";
-                const edadCalculada = calcularEdad(miembro.nacimiento);
                 
+                // Clases visuales para distinguir claramente si ya dio discurso (verde) o no (rojo)
+                div.className = esUrgente ? 'card urgente' : 'card asignado';
+                
+                const edadCalculada = calcularEdad(miembro.nacimiento);
                 const estadoHtml = esUrgente 
                     ? `<span class="value status-urgent">Sin registro</span>`
-                    : `<span class="value status-ok">${miembro.ultimoDiscurso}</span>`;
+                    : `<span class="value status-ok">✅ ${miembro.ultimoDiscurso}</span>`;
 
                 div.innerHTML = `
-                    <button class="btn-asignar-inline" onclick="abrirModal('${miembro.nombre}')">+ Asignar</button>
+                    <button class="btn-asignar-inline" onclick="abrirModal('${miembro.nombre}', '${miembro.ultimoDiscurso}')">✏️ Editar / Asignar</button>
                     <div class="name">${miembro.nombre}</div>
                     <div class="info-grid">
                         <div class="info-item"><span class="label">Sexo</span><span class="value">${miembro.sexo}</span></div>
                         <div class="info-item"><span class="label">Edad</span><span class="value">${edadCalculada} años</span></div>
-                        <div class="info-item"><span class="label">Último</span>${estadoHtml}</div>
+                        <div class="info-item"><span class="label">Último Discurso</span>${estadoHtml}</div>
                     </div>
                 `;
                 contenedor.appendChild(div);
@@ -208,12 +213,12 @@
             });
 
             for (const fecha in grupos) {
-                contenedor.innerHTML += `<div class="timeline-date">Reunión: ${fecha}</div>`;
+                contenedor.innerHTML += `<div class="timeline-date">Reunión Dominical: ${fecha}</div>`;
                 grupos[fecha].forEach(discurso => {
                     contenedor.innerHTML += `
                         <div class="timeline-item">
                             <div class="speaker">👤 ${discurso.nombre}</div>
-                            <div class="topic">📝 ${discurso.tema}</div>
+                            <div class="topic">📝 Tema: ${discurso.tema}</div>
                         </div>
                     `;
                 });
@@ -224,6 +229,20 @@
             document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('activo'));
             botonClicado.classList.add('activo');
             filtroActual = tipo;
+            filtrarYBuscar();
+        }
+
+        function manejarBusqueda() {
+            const input = document.getElementById('input-busqueda');
+            const btnLimpiar = document.getElementById('btn-limpiar');
+            btnLimpiar.style.display = input.value.trim() !== "" ? 'block' : 'none';
+            filtrarYBuscar();
+        }
+
+        function limpiarBusqueda() {
+            const input = document.getElementById('input-busqueda');
+            input.value = "";
+            document.getElementById('btn-limpiar').style.display = 'none';
             filtrarYBuscar();
         }
 
@@ -242,10 +261,38 @@
             renderizarDirectorio(lista);
         }
 
-        function abrirModal(nombre) {
+        // VALIDACIÓN ESTRICTA DE DOMINGOS
+        function validarDomingo(inputFecha) {
+            const valor = inputFecha.value;
+            const errorMsg = document.getElementById('error-domingo');
+            const btnGuardar = document.getElementById('btn-guardar-txt');
+
+            if (!valor) return;
+
+            // Crear objeto de fecha ajustando zona horaria local
+            const partes = valor.split('-');
+            const fechaSeleccionada = new Date(partes[0], partes[1] - 1, partes[2]);
+            const diaSemana = fechaSeleccionada.getDay(); // 0 = Domingo
+
+            if (diaSemana !== 0) {
+                errorMsg.style.display = 'block';
+                inputFecha.style.borderColor = '#d93025';
+                document.getElementById('btn-guardar-txt').disabled = true;
+            } else {
+                errorMsg.style.display = 'none';
+                inputFecha.style.borderColor = '#dadce0';
+                document.getElementById('btn-guardar-txt').disabled = false;
+            }
+        }
+
+        function abrirModal(nombre, ultimoDiscurso) {
             document.getElementById('modal-nombre').value = nombre;
             document.getElementById('modal-nombre-text').innerText = nombre;
+            
+            // Si ya tenía discurso previo, intentamos sugerir esa fecha o la de hoy
             document.getElementById('modal-fecha').valueAsDate = new Date();
+            document.getElementById('error-domingo').style.display = 'none';
+            document.getElementById('btn-guardar-txt').disabled = false;
             document.getElementById('modal-tema').value = "";
             document.getElementById('modal').style.display = 'flex';
         }
@@ -256,18 +303,22 @@
 
         function guardarAsignacion() {
             const nombre = document.getElementById('modal-nombre').value;
-            const fecha = document.getElementById('modal-fecha').value;
+            const fechaInput = document.getElementById('modal-fecha').value;
             const tema = document.getElementById('modal-tema').value;
 
-            if(!fecha || !tema) {
+            if(!fechaInput || !tema) {
                 alert("Por favor completa la fecha y el tema.");
                 return;
             }
 
+            // Convertir formato fecha AAAA-MM-DD a DD/MM/AAAA para mantener el orden visual del Excel
+            const p = fechaInput.split('-');
+            const fechaFormateada = `${p[2]}/${p[1]}/${p[0]}`;
+
             document.getElementById('btn-guardar-txt').innerText = "Guardando...";
             document.getElementById('btn-guardar-txt').disabled = true;
 
-            const urlConDatos = `${API_URL}?action=registrar&nombre=${encodeURIComponent(nombre)}&fecha=${encodeURIComponent(fecha)}&tema=${encodeURIComponent(tema)}`;
+            const urlConDatos = `${API_URL}?action=registrar&nombre=${encodeURIComponent(nombre)}&fecha=${encodeURIComponent(fechaFormateada)}&tema=${encodeURIComponent(tema)}`;
 
             fetch(urlConDatos)
                 .then(response => response.json())
@@ -275,7 +326,7 @@
                     cerrarModal();
                     document.getElementById('btn-guardar-txt').innerText = "Guardar";
                     document.getElementById('btn-guardar-txt').disabled = false;
-                    cargarDatos();
+                    cargarDatos(); // Recarga instantánea y actualiza tarjetas/calendario
                 })
                 .catch(error => {
                     alert("Hubo un error al guardar. Intenta de nuevo.");
