@@ -12,10 +12,14 @@
         .container { padding: 20px; max-width: 800px; margin: 0 auto; }
         
         /* Navegación Principal */
-        .nav-tabs { display: flex; gap: 20px; border-bottom: 2px solid #dadce0; margin-bottom: 25px; }
+        .nav-tabs { display: flex; gap: 20px; border-bottom: 2px solid #dadce0; margin-bottom: 20px; }
         .nav-tab { background: none; border: none; font-size: 1.1em; color: #5f6368; cursor: pointer; padding: 10px 0; font-weight: 400; position: relative; }
         .nav-tab.activo { color: #002d42; font-weight: 600; }
         .nav-tab.activo::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px; background-color: #007c8f; }
+
+        /* Barra de Búsqueda */
+        .search-box { width: 100%; padding: 12px 15px; font-size: 1em; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; margin-bottom: 15px; outline: none; transition: border-color 0.2s; }
+        .search-box:focus { border-color: #007c8f; box-shadow: 0 0 0 2px rgba(0,124,143,0.1); }
 
         /* Filtros de la lista */
         .filtros { display: flex; gap: 15px; margin-bottom: 20px; overflow-x: auto; }
@@ -71,10 +75,13 @@
 
         <!-- VISTA: DIRECTORIO -->
         <div id="vista-directorio">
+            <!-- Barra de Búsqueda -->
+            <input type="text" id="input-busqueda" class="search-box" placeholder="🔍 Buscar miembro por nombre..." oninput="filtrarYBuscar()">
+
             <div class="filtros">
-                <button class="btn-filtro activo" onclick="filtrar('todos', this)">Todos</button>
-                <button class="btn-filtro" onclick="filtrar('sugerencias', this)">Urgentes</button>
-                <button class="btn-filtro" onclick="filtrar('recientes', this)">Asignados</button>
+                <button class="btn-filtro activo" onclick="setFiltro('todos', this)">Todos</button>
+                <button class="btn-filtro" onclick="setFiltro('sugerencias', this)">Urgentes</button>
+                <button class="btn-filtro" onclick="setFiltro('recientes', this)">Asignados</button>
             </div>
             <div id="lista-miembros" style="color: #5f6368;">Cargando base de datos...</div>
         </div>
@@ -111,21 +118,19 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbw_73dkyDLwga1r_kMxPNX5QA0PyBIYTcjirDUCxMDwv46zLLDAextABAzL_shn0o8/exec';
 
         let datosGlobales = { miembros: [], historial: [] };
+        let filtroActual = 'todos'; // Variable para recordar qué pestaña de filtro está activa
 
-        // Cargar todo al iniciar
         function cargarDatos() {
-            document.getElementById('lista-miembros').innerHTML = 'Cargando base de datos...';
             fetch(API_URL)
                 .then(response => response.json())
                 .then(data => {
                     datosGlobales = data;
-                    renderizarDirectorio(datosGlobales.miembros);
+                    filtrarYBuscar(); // Dibuja la lista aplicando el filtro y búsqueda actual
                     renderizarCalendario(datosGlobales.historial);
                 });
         }
         cargarDatos();
 
-        // NAVEGACIÓN ENTRE PESTAÑAS
         function cambiarPestana(vista, boton) {
             document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('activo'));
             boton.classList.add('activo');
@@ -139,10 +144,15 @@
             }
         }
 
-        // RENDERIZAR DIRECTORIO
         function renderizarDirectorio(datos) {
             const contenedor = document.getElementById('lista-miembros');
             contenedor.innerHTML = ''; 
+
+            if (datos.length === 0) {
+                contenedor.innerHTML = '<p style="text-align:center; padding: 20px;">No se encontraron miembros.</p>';
+                return;
+            }
+
             datos.forEach(miembro => {
                 const div = document.createElement('div');
                 div.className = 'card';
@@ -163,7 +173,6 @@
             });
         }
 
-        // RENDERIZAR CALENDARIO
         function renderizarCalendario(historial) {
             const contenedor = document.getElementById('lista-calendario');
             contenedor.innerHTML = '';
@@ -173,16 +182,13 @@
                 return;
             }
 
-            // Agrupar por fecha
             const grupos = {};
             historial.forEach(reg => {
-                // Si la fecha incluye hora (Ej: 15/09/2026 10:00), nos quedamos solo con la fecha para agrupar
                 const fechaCorta = reg.fecha.split(' ')[0]; 
                 if(!grupos[fechaCorta]) grupos[fechaCorta] = [];
                 grupos[fechaCorta].push(reg);
             });
 
-            // Dibujar línea de tiempo
             for (const fecha in grupos) {
                 contenedor.innerHTML += `<div class="timeline-date">Reunión: ${fecha}</div>`;
                 grupos[fecha].forEach(discurso => {
@@ -196,22 +202,35 @@
             }
         }
 
-        // FILTROS DEL DIRECTORIO
-        function filtrar(tipo, botonClicado) {
+        // CONTROL DE FILTROS Y BÚSQUEDA COMBINADOS
+        function setFiltro(tipo, botonClicado) {
             document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('activo'));
             botonClicado.classList.add('activo');
-            let datosFiltrados = [];
-            if (tipo === 'todos') datosFiltrados = datosGlobales.miembros;
-            else if (tipo === 'sugerencias') datosFiltrados = datosGlobales.miembros.filter(m => m.ultimoDiscurso === "");
-            else if (tipo === 'recientes') datosFiltrados = datosGlobales.miembros.filter(m => m.ultimoDiscurso !== "");
-            renderizarDirectorio(datosFiltrados);
+            filtroActual = tipo;
+            filtrarYBuscar();
         }
 
-        // LÓGICA DE LA VENTANA EMERGENTE (MODAL)
+        function filtrarYBuscar() {
+            const textoBusqueda = document.getElementById('input-busqueda').value.toLowerCase().trim();
+            
+            // 1. Filtrar por categoría (Todos / Urgentes / Asignados)
+            let lista = [];
+            if (filtroActual === 'todos') lista = datosGlobales.miembros;
+            else if (filtroActual === 'sugerencias') lista = datosGlobales.miembros.filter(m => m.ultimoDiscurso === "");
+            else if (filtroActual === 'recientes') lista = datosGlobales.miembros.filter(m => m.ultimoDiscurso !== "");
+
+            // 2. Filtrar por lo que se va escribiendo en el buscador
+            if (textoBusqueda !== "") {
+                lista = lista.filter(m => m.nombre.toLowerCase().includes(textoBusqueda));
+            }
+
+            renderizarDirectorio(lista);
+        }
+
+        // MODAL Y ACCIONES
         function abrirModal(nombre) {
             document.getElementById('modal-nombre').value = nombre;
             document.getElementById('modal-nombre-text').innerText = nombre;
-            // Poner la fecha de hoy por defecto
             document.getElementById('modal-fecha').valueAsDate = new Date();
             document.getElementById('modal-tema').value = "";
             document.getElementById('modal').style.display = 'flex';
@@ -221,7 +240,6 @@
             document.getElementById('modal').style.display = 'none';
         }
 
-        // GUARDAR LA ASIGNACIÓN DIRECTO AL EXCEL
         function guardarAsignacion() {
             const nombre = document.getElementById('modal-nombre').value;
             const fecha = document.getElementById('modal-fecha').value;
@@ -232,11 +250,9 @@
                 return;
             }
 
-            // Cambiar texto a enviando...
             document.getElementById('btn-guardar-txt').innerText = "Guardando...";
             document.getElementById('btn-guardar-txt').disabled = true;
 
-            // Enviar datos al script
             const urlConDatos = `${API_URL}?action=registrar&nombre=${encodeURIComponent(nombre)}&fecha=${encodeURIComponent(fecha)}&tema=${encodeURIComponent(tema)}`;
 
             fetch(urlConDatos)
@@ -245,8 +261,6 @@
                     cerrarModal();
                     document.getElementById('btn-guardar-txt').innerText = "Guardar";
                     document.getElementById('btn-guardar-txt').disabled = false;
-                    
-                    // Recargar datos para que se actualice la tarjeta y el calendario
                     cargarDatos();
                 })
                 .catch(error => {
