@@ -16,7 +16,6 @@
         .nav-tab.activo { color: #002d42; font-weight: 600; }
         .nav-tab.activo::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px; background-color: #007c8f; }
 
-        /* Contenedor del buscador con botón X */
         .search-container { position: relative; margin-bottom: 15px; }
         .search-box { width: 100%; padding: 12px 40px 12px 15px; font-size: 1em; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; outline: none; transition: border-color 0.2s; background: white; }
         .search-box:focus { border-color: #007c8f; box-shadow: 0 0 0 2px rgba(0,124,143,0.1); }
@@ -27,8 +26,7 @@
         .btn-filtro { background: #e8eaed; border: none; border-radius: 15px; font-size: 0.85em; color: #3c4043; cursor: pointer; padding: 6px 12px; white-space: nowrap; }
         .btn-filtro.activo { background: #007c8f; color: white; }
 
-        /* Tarjetas */
-        .card { background: white; border: 1px solid #dadce0; border-radius: 4px; padding: 16px; margin-bottom: 12px; position: relative; transition: border-left 0.2s; }
+        .card { background: white; border: 1px solid #dadce0; border-radius: 4px; padding: 16px; margin-bottom: 12px; position: relative; }
         .card.asignado { border-left: 5px solid #1e8e3e; background-color: #fcfdfc; }
         .card.urgente { border-left: 5px solid #d93025; }
 
@@ -41,10 +39,13 @@
         .btn-asignar-inline { position: absolute; top: 16px; right: 16px; background-color: white; color: #007c8f; border: 1px solid #007c8f; padding: 5px 10px; border-radius: 3px; font-size: 0.8em; cursor: pointer; font-weight: 600; }
         .btn-asignar-inline:active { background-color: #f0f8f9; }
 
+        /* Calendario y Botón Eliminar */
         .timeline-date { font-weight: 600; color: #002d42; margin-top: 20px; margin-bottom: 10px; font-size: 1.1em; border-bottom: 1px solid #dadce0; padding-bottom: 5px; }
-        .timeline-item { background: white; border-left: 4px solid #007c8f; padding: 10px 15px; margin-bottom: 10px; border-radius: 0 4px 4px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .timeline-item .speaker { font-weight: 500; color: #202124; margin-bottom: 4px; }
-        .timeline-item .topic { font-size: 0.85em; color: #5f6368; }
+        .timeline-item { background: white; border-left: 4px solid #007c8f; padding: 12px 15px; margin-bottom: 10px; border-radius: 0 4px 4px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
+        .timeline-item .speaker { font-weight: 500; color: #202124; margin-bottom: 4px; padding-right: 70px; }
+        .timeline-item .topic { font-size: 0.85em; color: #5f6368; padding-right: 70px; }
+        .btn-eliminar { position: absolute; top: 12px; right: 12px; background-color: #fce8e6; color: #d93025; border: 1px solid #fadcda; padding: 4px 8px; border-radius: 3px; font-size: 0.75em; cursor: pointer; font-weight: 600; }
+        .btn-eliminar:hover { background-color: #fad2ce; }
 
         /* Modal */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
@@ -77,7 +78,6 @@
         </div>
 
         <div id="vista-directorio">
-            <!-- Buscador con botón X -->
             <div class="search-container">
                 <input type="text" id="input-busqueda" class="search-box" placeholder="🔍 Buscar miembro por nombre..." oninput="manejarBusqueda()">
                 <button id="btn-limpiar" class="clear-btn" onclick="limpiarBusqueda()">×</button>
@@ -96,7 +96,6 @@
         </div>
     </div>
 
-    <!-- Modal con validación de domingos -->
     <div class="modal-overlay" id="modal">
         <div class="modal">
             <h3 id="modal-titulo">Asignar Discurso</h3>
@@ -174,8 +173,6 @@
             datos.forEach(miembro => {
                 const div = document.createElement('div');
                 const esUrgente = miembro.ultimoDiscurso === "";
-                
-                // Clases visuales para distinguir claramente si ya dio discurso (verde) o no (rojo)
                 div.className = esUrgente ? 'card urgente' : 'card asignado';
                 
                 const edadCalculada = calcularEdad(miembro.nacimiento);
@@ -184,7 +181,7 @@
                     : `<span class="value status-ok">✅ ${miembro.ultimoDiscurso}</span>`;
 
                 div.innerHTML = `
-                    <button class="btn-asignar-inline" onclick="abrirModal('${miembro.nombre}', '${miembro.ultimoDiscurso}')">✏️ Editar / Asignar</button>
+                    <button class="btn-asignar-inline" onclick="abrirModal('${miembro.nombre}')">+ Asignar</button>
                     <div class="name">${miembro.nombre}</div>
                     <div class="info-grid">
                         <div class="info-item"><span class="label">Sexo</span><span class="value">${miembro.sexo}</span></div>
@@ -201,7 +198,7 @@
             contenedor.innerHTML = '';
             
             if(historial.length === 0) {
-                contenedor.innerHTML = 'No hay discursos registrados aún.';
+                contenedor.innerHTML = '<p style="text-align:center; padding: 20px;">No hay discursos registrados aún.</p>';
                 return;
             }
 
@@ -217,12 +214,28 @@
                 grupos[fecha].forEach(discurso => {
                     contenedor.innerHTML += `
                         <div class="timeline-item">
+                            <button class="btn-eliminar" onclick="eliminarDiscurso('${fecha}', '${discurso.nombre}')">🗑️ Eliminar</button>
                             <div class="speaker">👤 ${discurso.nombre}</div>
                             <div class="topic">📝 Tema: ${discurso.tema}</div>
                         </div>
                     `;
                 });
             }
+        }
+
+        function eliminarDiscurso(fecha, nombre) {
+            if (!confirm(`¿Estás seguro de eliminar el registro de ${nombre} del ${fecha}?`)) return;
+
+            const urlEliminar = `${API_URL}?action=eliminar&fecha=${encodeURIComponent(fecha)}&nombre=${encodeURIComponent(nombre)}`;
+            
+            fetch(urlEliminar)
+                .then(response => response.json())
+                .then(data => {
+                    cargarDatos(); // Recarga inmediata del calendario y directorio
+                })
+                .catch(error => {
+                    alert("Error al intentar eliminar el registro.");
+                });
         }
 
         function setFiltro(tipo, botonClicado) {
@@ -248,7 +261,6 @@
 
         function filtrarYBuscar() {
             const textoBusqueda = document.getElementById('input-busqueda').value.toLowerCase().trim();
-            
             let lista = [];
             if (filtroActual === 'todos') lista = datosGlobales.miembros;
             else if (filtroActual === 'sugerencias') lista = datosGlobales.miembros.filter(m => m.ultimoDiscurso === "");
@@ -257,22 +269,17 @@
             if (textoBusqueda !== "") {
                 lista = lista.filter(m => m.nombre.toLowerCase().includes(textoBusqueda));
             }
-
             renderizarDirectorio(lista);
         }
 
-        // VALIDACIÓN ESTRICTA DE DOMINGOS
         function validarDomingo(inputFecha) {
             const valor = inputFecha.value;
             const errorMsg = document.getElementById('error-domingo');
-            const btnGuardar = document.getElementById('btn-guardar-txt');
-
             if (!valor) return;
 
-            // Crear objeto de fecha ajustando zona horaria local
             const partes = valor.split('-');
             const fechaSeleccionada = new Date(partes[0], partes[1] - 1, partes[2]);
-            const diaSemana = fechaSeleccionada.getDay(); // 0 = Domingo
+            const diaSemana = fechaSeleccionada.getDay();
 
             if (diaSemana !== 0) {
                 errorMsg.style.display = 'block';
@@ -285,11 +292,9 @@
             }
         }
 
-        function abrirModal(nombre, ultimoDiscurso) {
+        function abrirModal(nombre) {
             document.getElementById('modal-nombre').value = nombre;
             document.getElementById('modal-nombre-text').innerText = nombre;
-            
-            // Si ya tenía discurso previo, intentamos sugerir esa fecha o la de hoy
             document.getElementById('modal-fecha').valueAsDate = new Date();
             document.getElementById('error-domingo').style.display = 'none';
             document.getElementById('btn-guardar-txt').disabled = false;
@@ -311,7 +316,6 @@
                 return;
             }
 
-            // Convertir formato fecha AAAA-MM-DD a DD/MM/AAAA para mantener el orden visual del Excel
             const p = fechaInput.split('-');
             const fechaFormateada = `${p[2]}/${p[1]}/${p[0]}`;
 
@@ -326,7 +330,7 @@
                     cerrarModal();
                     document.getElementById('btn-guardar-txt').innerText = "Guardar";
                     document.getElementById('btn-guardar-txt').disabled = false;
-                    cargarDatos(); // Recarga instantánea y actualiza tarjetas/calendario
+                    cargarDatos();
                 })
                 .catch(error => {
                     alert("Hubo un error al guardar. Intenta de nuevo.");
