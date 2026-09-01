@@ -5,80 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discursantes - Barrio Ciudad Blanca</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 15px; background-color: #f4f4f9; }
-        .header { text-align: center; margin-bottom: 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 15px; background-color: #f4f4f9; padding-bottom: 40px; }
+        .header { text-align: center; margin-bottom: 15px; }
+        
+        /* Estilo del botón principal para el formulario */
+        .btn-registrar { display: block; width: 100%; padding: 14px; background-color: #0052cc; color: white; text-align: center; border-radius: 8px; text-decoration: none; font-size: 1.1em; font-weight: bold; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); box-sizing: border-box; }
+        .btn-registrar:active { background-color: #003d99; }
+        
+        /* Estilos de los botones de filtro */
+        .filtros { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .btn-filtro { padding: 8px 14px; border: none; border-radius: 20px; background: #e0e0e0; font-size: 0.9em; cursor: pointer; white-space: nowrap; font-weight: 500; color: #333; }
+        .btn-filtro.activo { background: #333; color: white; }
+        
+        /* Estilos de las tarjetas (igual que antes) */
         .card { background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column;}
         .name { font-weight: bold; font-size: 1.1em; margin-bottom: 4px; color: #333; }
         .info-tags { display: flex; gap: 10px; margin-bottom: 8px; font-size: 0.85em; color: #555; }
         .tag { background: #e0e0e0; padding: 2px 8px; border-radius: 12px; }
         .details { font-size: 0.9em; margin-top: 5px; }
-        .needs-assignment { border-left: 6px solid #e74c3c; } /* Rojo */
-        .recent-speaker { border-left: 6px solid #2ecc71; } /* Verde */
+        .needs-assignment { border-left: 6px solid #e74c3c; } 
+        .recent-speaker { border-left: 6px solid #2ecc71; } 
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2>Registro de Discursantes</h2>
+        <h2 style="margin-bottom: 5px;">Discursantes</h2>
+        <p style="margin-top: 0; color: #666; font-size: 0.9em;">Barrio Ciudad Blanca</p>
+    </div>
+
+    <!-- AQUÍ PONES EL LINK DE TU GOOGLE FORM -->
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdKd5Q2BDbi_lm3LAYOnvWgSC7t7Or-UtCltasqbCeFKQZFSg/viewform?usp=publish-editor" target="_blank" class="btn-registrar">
+        📝 Asignar Discurso
+    </a>
+
+    <!-- Botones interactivos -->
+    <div class="filtros">
+        <button class="btn-filtro activo" onclick="filtrar('todos', this)">Todos</button>
+        <button class="btn-filtro" onclick="filtrar('sugerencias', this)">💡 Sugerencias</button>
+        <button class="btn-filtro" onclick="filtrar('recientes', this)">✅ Ya discursaron</button>
     </div>
     
-    <div id="lista-miembros">Cargando datos desde Google Sheets...</div>
+    <div id="lista-miembros">Cargando base de datos...</div>
 
     <script>
-        // PEGA AQUÍ LA URL QUE TE DIO GOOGLE APPS SCRIPT
+        // Tu API actual (¡No la cambies, esta ya funciona perfecto!)
         const API_URL = 'https://script.google.com/macros/s/AKfycbw_73dkyDLwga1r_kMxPNX5QA0PyBIYTcjirDUCxMDwv46zLLDAextABAzL_shn0o8/exec';
 
-        // Función para calcular la edad dinámicamente
+        let miembrosData = []; // Aquí guardaremos la lista completa para poder filtrarla sin recargar
+
         function calcularEdad(fechaNacimiento) {
             if (!fechaNacimiento) return "--";
-            
-            // Asumiendo formato DD/MM/YYYY de tu Excel
             const partes = fechaNacimiento.split('/');
             if (partes.length !== 3) return "--";
-            
             const fechaNac = new Date(partes[2], partes[1] - 1, partes[0]);
             const hoy = new Date();
             let edad = hoy.getFullYear() - fechaNac.getFullYear();
             const mes = hoy.getMonth() - fechaNac.getMonth();
-            
-            // Ajuste si aún no ha cumplido años este año
             if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
                 edad--;
             }
             return edad;
         }
 
+        // Descargar los datos al abrir la página
         fetch(API_URL)
             .then(response => response.json())
             .then(data => {
-                const contenedor = document.getElementById('lista-miembros');
-                contenedor.innerHTML = ''; // Limpiar mensaje de carga
-
-                data.forEach(miembro => {
-                    const div = document.createElement('div');
-                    
-                    // Si la celda de UltimoDiscurso está vacía, marca en rojo
-                    const estadoClase = miembro.ultimoDiscurso === "" ? "needs-assignment" : "recent-speaker";
-                    const edadCalculada = calcularEdad(miembro.nacimiento);
-                    
-                    div.className = `card ${estadoClase}`;
-                    div.innerHTML = `
-                        <div class="name">${miembro.nombre}</div>
-                        <div class="info-tags">
-                            <span class="tag">Sexo: ${miembro.sexo}</span>
-                            <span class="tag">Edad: ${edadCalculada} años</span>
-                        </div>
-                        <div class="details">
-                            <strong>Último discurso:</strong> ${miembro.ultimoDiscurso || "<span style='color:#e74c3c;'>Sin registro reciente</span>"}
-                        </div>
-                    `;
-                    contenedor.appendChild(div);
-                });
+                miembrosData = data;
+                renderizarLista(miembrosData); // Muestra todos por defecto
             })
             .catch(error => {
-                document.getElementById('lista-miembros').innerHTML = 'Error al cargar los datos. Verifica el enlace.';
+                document.getElementById('lista-miembros').innerHTML = 'Error al cargar los datos. Verifica tu conexión.';
                 console.error(error);
             });
+
+        // Función para "dibujar" las tarjetas
+        function renderizarLista(datos) {
+            const contenedor = document.getElementById('lista-miembros');
+            contenedor.innerHTML = ''; 
+
+            if (datos.length === 0) {
+                contenedor.innerHTML = '<p style="text-align:center; color:#666;">No hay miembros en esta categoría.</p>';
+                return;
+            }
+
+            datos.forEach(miembro => {
+                const div = document.createElement('div');
+                const estadoClase = miembro.ultimoDiscurso === "" ? "needs-assignment" : "recent-speaker";
+                const edadCalculada = calcularEdad(miembro.nacimiento);
+                
+                div.className = `card ${estadoClase}`;
+                div.innerHTML = `
+                    <div class="name">${miembro.nombre}</div>
+                    <div class="info-tags">
+                        <span class="tag">Sexo: ${miembro.sexo}</span>
+                        <span class="tag">Edad: ${edadCalculada} años</span>
+                    </div>
+                    <div class="details">
+                        <strong>Último discurso:</strong> ${miembro.ultimoDiscurso || "<span style='color:#e74c3c;'>Sin registro reciente</span>"}
+                    </div>
+                `;
+                contenedor.appendChild(div);
+            });
+        }
+
+        // Función para los botones de filtro
+        function filtrar(tipo, botonClicado) {
+            // Cambiar el color del botón presionado
+            document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('activo'));
+            botonClicado.classList.add('activo');
+
+            // Filtrar la lista
+            let datosFiltrados = [];
+            if (tipo === 'todos') {
+                datosFiltrados = miembrosData;
+            } else if (tipo === 'sugerencias') {
+                // Filtra solo los que NO tienen fecha (Sugerencias urgentes)
+                datosFiltrados = miembrosData.filter(m => m.ultimoDiscurso === "");
+            } else if (tipo === 'recientes') {
+                // Filtra solo los que SÍ tienen fecha
+                datosFiltrados = miembrosData.filter(m => m.ultimoDiscurso !== "");
+            }
+            
+            renderizarLista(datosFiltrados);
+        }
     </script>
 </body>
 </html>
