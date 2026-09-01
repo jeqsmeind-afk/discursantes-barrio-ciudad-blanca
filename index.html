@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discursantes - Barrio Ciudad Blanca</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 15px; background-color: #f4f4f9; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .card { background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column;}
+        .name { font-weight: bold; font-size: 1.1em; margin-bottom: 4px; color: #333; }
+        .info-tags { display: flex; gap: 10px; margin-bottom: 8px; font-size: 0.85em; color: #555; }
+        .tag { background: #e0e0e0; padding: 2px 8px; border-radius: 12px; }
+        .details { font-size: 0.9em; margin-top: 5px; }
+        .needs-assignment { border-left: 6px solid #e74c3c; } /* Rojo */
+        .recent-speaker { border-left: 6px solid #2ecc71; } /* Verde */
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>Registro de Discursantes</h2>
+    </div>
+    
+    <div id="lista-miembros">Cargando datos desde Google Sheets...</div>
+
+    <script>
+        // PEGA AQUÍ LA URL QUE TE DIO GOOGLE APPS SCRIPT
+        const API_URL = 'AKfycbw_73dkyDLwga1r_kMxPNX5QA0PyBIYTcjirDUCxMDwv46zLLDAextABAzL_shn0o8';
+
+        // Función para calcular la edad dinámicamente
+        function calcularEdad(fechaNacimiento) {
+            if (!fechaNacimiento) return "--";
+            
+            // Asumiendo formato DD/MM/YYYY de tu Excel
+            const partes = fechaNacimiento.split('/');
+            if (partes.length !== 3) return "--";
+            
+            const fechaNac = new Date(partes[2], partes[1] - 1, partes[0]);
+            const hoy = new Date();
+            let edad = hoy.getFullYear() - fechaNac.getFullYear();
+            const mes = hoy.getMonth() - fechaNac.getMonth();
+            
+            // Ajuste si aún no ha cumplido años este año
+            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+                edad--;
+            }
+            return edad;
+        }
+
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+                const contenedor = document.getElementById('lista-miembros');
+                contenedor.innerHTML = ''; // Limpiar mensaje de carga
+
+                data.forEach(miembro => {
+                    const div = document.createElement('div');
+                    
+                    // Si la celda de UltimoDiscurso está vacía, marca en rojo
+                    const estadoClase = miembro.ultimoDiscurso === "" ? "needs-assignment" : "recent-speaker";
+                    const edadCalculada = calcularEdad(miembro.nacimiento);
+                    
+                    div.className = `card ${estadoClase}`;
+                    div.innerHTML = `
+                        <div class="name">${miembro.nombre}</div>
+                        <div class="info-tags">
+                            <span class="tag">Sexo: ${miembro.sexo}</span>
+                            <span class="tag">Edad: ${edadCalculada} años</span>
+                        </div>
+                        <div class="details">
+                            <strong>Último discurso:</strong> ${miembro.ultimoDiscurso || "<span style='color:#e74c3c;'>Sin registro reciente</span>"}
+                        </div>
+                    `;
+                    contenedor.appendChild(div);
+                });
+            })
+            .catch(error => {
+                document.getElementById('lista-miembros').innerHTML = 'Error al cargar los datos. Verifica el enlace.';
+                console.error(error);
+            });
+    </script>
+</body>
+</html>
