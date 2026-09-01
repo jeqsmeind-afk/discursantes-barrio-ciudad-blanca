@@ -3,158 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discursantes - Barrio Ciudad Blanca</title>
+    <title>Discursantes - LCR Extensión</title>
     <style>
-        /* Estilos inspirados en el portal LCR */
         body { font-family: "Open Sans", "Roboto", "Arial", sans-serif; background-color: #f8f9fa; margin: 0; color: #333; padding-bottom: 40px; }
-        
-        /* Barra superior LCR */
         .top-bar { background-color: #002d42; color: #fff; padding: 12px 20px; display: flex; flex-direction: column; gap: 4px; }
         .top-bar h1 { margin: 0; font-size: 1.1em; font-weight: 400; }
         .top-bar .unit-info { font-size: 0.8em; color: #b3c2cb; }
-        
         .container { padding: 20px; max-width: 800px; margin: 0 auto; }
         
-        /* Título de la página */
-        .page-header { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
-        .page-title { font-size: 1.8em; font-weight: 300; margin: 0; color: #202124; }
-        
-        /* Botón estilo institucional */
-        .btn-registrar { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background-color: #007c8f; color: white; padding: 10px 20px; border-radius: 3px; text-decoration: none; font-size: 0.95em; font-weight: 500; border: 1px solid #006070; transition: background-color 0.2s; }
-        .btn-registrar:active { background-color: #00596b; }
-        
-        /* Pestañas de filtro (En lugar de botones ovalados) */
-        .filtros { display: flex; gap: 20px; border-bottom: 1px solid #dadce0; margin-bottom: 20px; overflow-x: auto; }
-        .btn-filtro { background: none; border: none; font-size: 0.95em; color: #5f6368; cursor: pointer; padding: 8px 4px; position: relative; white-space: nowrap; }
-        .btn-filtro.activo { color: #007c8f; font-weight: 600; }
-        .btn-filtro.activo::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background-color: #007c8f; border-radius: 3px 3px 0 0; }
-        
-        /* Tarjetas limpias y planas */
-        .card { background: white; border: 1px solid #dadce0; border-radius: 4px; padding: 16px; margin-bottom: 12px; }
-        .card .name { font-size: 1.25em; font-weight: 400; color: #202124; margin-bottom: 12px; }
-        .info-grid { display: flex; flex-wrap: wrap; gap: 20px; }
+        /* Navegación Principal */
+        .nav-tabs { display: flex; gap: 20px; border-bottom: 2px solid #dadce0; margin-bottom: 25px; }
+        .nav-tab { background: none; border: none; font-size: 1.1em; color: #5f6368; cursor: pointer; padding: 10px 0; font-weight: 400; position: relative; }
+        .nav-tab.activo { color: #002d42; font-weight: 600; }
+        .nav-tab.activo::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px; background-color: #007c8f; }
+
+        /* Filtros de la lista */
+        .filtros { display: flex; gap: 15px; margin-bottom: 20px; overflow-x: auto; }
+        .btn-filtro { background: #e8eaed; border: none; border-radius: 15px; font-size: 0.85em; color: #3c4043; cursor: pointer; padding: 6px 12px; white-space: nowrap; }
+        .btn-filtro.activo { background: #007c8f; color: white; }
+
+        /* Tarjetas Directorio */
+        .card { background: white; border: 1px solid #dadce0; border-radius: 4px; padding: 16px; margin-bottom: 12px; position: relative; }
+        .card .name { font-size: 1.15em; font-weight: 500; color: #202124; margin-bottom: 12px; padding-right: 90px; }
+        .info-grid { display: flex; flex-wrap: wrap; gap: 15px; }
         .info-item { display: flex; flex-direction: column; gap: 2px; }
-        .info-item span.label { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; color: #70757a; font-weight: 600; }
+        .info-item span.label { font-size: 0.7em; text-transform: uppercase; color: #70757a; font-weight: 600; }
         .info-item span.value { font-size: 0.9em; color: #3c4043; }
         
-        /* Estados del discurso */
-        .status-urgent { color: #d93025 !important; font-weight: 500; }
-        .status-ok { color: #1e8e3e !important; font-weight: 500; }
+        /* Botón de Asignar Directo */
+        .btn-asignar-inline { position: absolute; top: 16px; right: 16px; background-color: white; color: #007c8f; border: 1px solid #007c8f; padding: 5px 10px; border-radius: 3px; font-size: 0.8em; cursor: pointer; font-weight: 600; }
+        .btn-asignar-inline:active { background-color: #f0f8f9; }
+
+        /* Estilos del Calendario */
+        .timeline-date { font-weight: 600; color: #002d42; margin-top: 20px; margin-bottom: 10px; font-size: 1.1em; border-bottom: 1px solid #dadce0; padding-bottom: 5px; }
+        .timeline-item { background: white; border-left: 4px solid #007c8f; padding: 10px 15px; margin-bottom: 10px; border-radius: 0 4px 4px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .timeline-item .speaker { font-weight: 500; color: #202124; margin-bottom: 4px; }
+        .timeline-item .topic { font-size: 0.85em; color: #5f6368; }
+
+        /* Modal (Ventana emergente) */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+        .modal { background: white; padding: 20px; border-radius: 6px; width: 90%; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .modal h3 { margin-top: 0; color: #002d42; }
+        .modal label { display: block; margin-top: 15px; font-size: 0.85em; font-weight: 600; color: #5f6368; }
+        .modal input { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        .modal-actions { margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-cancelar { background: none; border: none; color: #5f6368; cursor: pointer; font-weight: 500; }
+        .btn-guardar { background: #007c8f; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-weight: 500; }
+        
+        .status-urgent { color: #d93025; font-weight: 500; }
+        .status-ok { color: #1e8e3e; font-weight: 500; }
+        .oculto { display: none; }
     </style>
 </head>
 <body>
 
     <div class="top-bar">
         <h1>Fuentes de recursos para el obispado</h1>
-        <span class="unit-info">Estaca Arequipa Perú Paucarpata (1646176) | Barrio Ciudad Blanca (215864)</span>
+        <span class="unit-info">Barrio Ciudad Blanca</span>
     </div>
 
     <div class="container">
-        <div class="page-header">
-            <h2 class="page-title">Asignación de Discursantes</h2>
-            <!-- AQUÍ PONES EL LINK DE TU GOOGLE FORM -->
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLSdKd5Q2BDbi_lm3LAYOnvWgSC7t7Or-UtCltasqbCeFKQZFSg/viewform?usp=header" target="_blank" class="btn-registrar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                Registrar Asignación
-            </a>
+        <!-- Navegación Principal -->
+        <div class="nav-tabs">
+            <button class="nav-tab activo" onclick="cambiarPestana('directorio', this)">Directorio</button>
+            <button class="nav-tab" onclick="cambiarPestana('calendario', this)">Calendario</button>
         </div>
 
-        <div class="filtros">
-            <button class="btn-filtro activo" onclick="filtrar('todos', this)">Lista completa</button>
-            <button class="btn-filtro" onclick="filtrar('sugerencias', this)">Sugerencias pendientes</button>
-            <button class="btn-filtro" onclick="filtrar('recientes', this)">Asignados recientemente</button>
+        <!-- VISTA: DIRECTORIO -->
+        <div id="vista-directorio">
+            <div class="filtros">
+                <button class="btn-filtro activo" onclick="filtrar('todos', this)">Todos</button>
+                <button class="btn-filtro" onclick="filtrar('sugerencias', this)">Urgentes</button>
+                <button class="btn-filtro" onclick="filtrar('recientes', this)">Asignados</button>
+            </div>
+            <div id="lista-miembros" style="color: #5f6368;">Cargando base de datos...</div>
         </div>
-        
-        <div id="lista-miembros" style="color: #5f6368; font-size: 0.9em;">Cargando registros...</div>
+
+        <!-- VISTA: CALENDARIO -->
+        <div id="vista-calendario" class="oculto">
+            <div id="lista-calendario" style="color: #5f6368;">Cargando calendario...</div>
+        </div>
+    </div>
+
+    <!-- VENTANA EMERGENTE PARA ASIGNAR -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <h3>Asignar Discurso</h3>
+            <p id="modal-nombre-text" style="margin: 0; font-size: 1.1em; color: #007c8f; font-weight: 600;"></p>
+            
+            <input type="hidden" id="modal-nombre">
+            
+            <label>Fecha de la reunión</label>
+            <input type="date" id="modal-fecha" required>
+            
+            <label>Tema del discurso</label>
+            <input type="text" id="modal-tema" placeholder="Ej: Arrepentimiento, Fe, etc." required>
+            
+            <div class="modal-actions">
+                <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-guardar" onclick="guardarAsignacion()" id="btn-guardar-txt">Guardar</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // AQUÍ PONES TU ENLACE DE APPS SCRIPT
+        // PEGA AQUÍ TU ENLACE DE APPS SCRIPT
         const API_URL = 'https://script.google.com/macros/s/AKfycbw_73dkyDLwga1r_kMxPNX5QA0PyBIYTcjirDUCxMDwv46zLLDAextABAzL_shn0o8/exec';
 
-        let miembrosData = [];
+        let datosGlobales = { miembros: [], historial: [] };
 
-        function calcularEdad(fechaNacimiento) {
-            if (!fechaNacimiento) return "--";
-            const partes = fechaNacimiento.split('/');
-            if (partes.length !== 3) return "--";
-            const fechaNac = new Date(partes[2], partes[1] - 1, partes[0]);
-            const hoy = new Date();
-            let edad = hoy.getFullYear() - fechaNac.getFullYear();
-            const mes = hoy.getMonth() - fechaNac.getMonth();
-            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
-                edad--;
+        // Cargar todo al iniciar
+        function cargarDatos() {
+            document.getElementById('lista-miembros').innerHTML = 'Cargando base de datos...';
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    datosGlobales = data;
+                    renderizarDirectorio(datosGlobales.miembros);
+                    renderizarCalendario(datosGlobales.historial);
+                });
+        }
+        cargarDatos();
+
+        // NAVEGACIÓN ENTRE PESTAÑAS
+        function cambiarPestana(vista, boton) {
+            document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('activo'));
+            boton.classList.add('activo');
+            
+            if(vista === 'directorio') {
+                document.getElementById('vista-directorio').classList.remove('oculto');
+                document.getElementById('vista-calendario').classList.add('oculto');
+            } else {
+                document.getElementById('vista-directorio').classList.add('oculto');
+                document.getElementById('vista-calendario').classList.remove('oculto');
             }
-            return edad;
         }
 
-        fetch(API_URL)
-            .then(response => response.json())
-            .then(data => {
-                miembrosData = data;
-                renderizarLista(miembrosData);
-            })
-            .catch(error => {
-                document.getElementById('lista-miembros').innerHTML = 'Error de conexión con la base de datos.';
-                console.error(error);
-            });
-
-        function renderizarLista(datos) {
+        // RENDERIZAR DIRECTORIO
+        function renderizarDirectorio(datos) {
             const contenedor = document.getElementById('lista-miembros');
             contenedor.innerHTML = ''; 
-
-            if (datos.length === 0) {
-                contenedor.innerHTML = '<p>No se encontraron registros en esta categoría.</p>';
-                return;
-            }
-
             datos.forEach(miembro => {
                 const div = document.createElement('div');
                 div.className = 'card';
-                
                 const esUrgente = miembro.ultimoDiscurso === "";
-                const edadCalculada = calcularEdad(miembro.nacimiento);
-                
-                // Formateo del estado
                 const estadoHtml = esUrgente 
-                    ? `<span class="value status-urgent">Sin registro reciente</span>`
+                    ? `<span class="value status-urgent">Sin registro</span>`
                     : `<span class="value status-ok">${miembro.ultimoDiscurso}</span>`;
 
                 div.innerHTML = `
+                    <button class="btn-asignar-inline" onclick="abrirModal('${miembro.nombre}')">+ Asignar</button>
                     <div class="name">${miembro.nombre}</div>
                     <div class="info-grid">
-                        <div class="info-item">
-                            <span class="label">Sexo</span>
-                            <span class="value">${miembro.sexo}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Edad</span>
-                            <span class="value">${edadCalculada} años</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Último Discurso</span>
-                            ${estadoHtml}
-                        </div>
+                        <div class="info-item"><span class="label">Sexo</span><span class="value">${miembro.sexo}</span></div>
+                        <div class="info-item"><span class="label">Último</span>${estadoHtml}</div>
                     </div>
                 `;
                 contenedor.appendChild(div);
             });
         }
 
+        // RENDERIZAR CALENDARIO
+        function renderizarCalendario(historial) {
+            const contenedor = document.getElementById('lista-calendario');
+            contenedor.innerHTML = '';
+            
+            if(historial.length === 0) {
+                contenedor.innerHTML = 'No hay discursos registrados aún.';
+                return;
+            }
+
+            // Agrupar por fecha
+            const grupos = {};
+            historial.forEach(reg => {
+                // Si la fecha incluye hora (Ej: 15/09/2026 10:00), nos quedamos solo con la fecha para agrupar
+                const fechaCorta = reg.fecha.split(' ')[0]; 
+                if(!grupos[fechaCorta]) grupos[fechaCorta] = [];
+                grupos[fechaCorta].push(reg);
+            });
+
+            // Dibujar línea de tiempo
+            for (const fecha in grupos) {
+                contenedor.innerHTML += `<div class="timeline-date">Reunión: ${fecha}</div>`;
+                grupos[fecha].forEach(discurso => {
+                    contenedor.innerHTML += `
+                        <div class="timeline-item">
+                            <div class="speaker">👤 ${discurso.nombre}</div>
+                            <div class="topic">📝 ${discurso.tema}</div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        // FILTROS DEL DIRECTORIO
         function filtrar(tipo, botonClicado) {
             document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('activo'));
             botonClicado.classList.add('activo');
-
             let datosFiltrados = [];
-            if (tipo === 'todos') {
-                datosFiltrados = miembrosData;
-            } else if (tipo === 'sugerencias') {
-                datosFiltrados = miembrosData.filter(m => m.ultimoDiscurso === "");
-            } else if (tipo === 'recientes') {
-                datosFiltrados = miembrosData.filter(m => m.ultimoDiscurso !== "");
+            if (tipo === 'todos') datosFiltrados = datosGlobales.miembros;
+            else if (tipo === 'sugerencias') datosFiltrados = datosGlobales.miembros.filter(m => m.ultimoDiscurso === "");
+            else if (tipo === 'recientes') datosFiltrados = datosGlobales.miembros.filter(m => m.ultimoDiscurso !== "");
+            renderizarDirectorio(datosFiltrados);
+        }
+
+        // LÓGICA DE LA VENTANA EMERGENTE (MODAL)
+        function abrirModal(nombre) {
+            document.getElementById('modal-nombre').value = nombre;
+            document.getElementById('modal-nombre-text').innerText = nombre;
+            // Poner la fecha de hoy por defecto
+            document.getElementById('modal-fecha').valueAsDate = new Date();
+            document.getElementById('modal-tema').value = "";
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // GUARDAR LA ASIGNACIÓN DIRECTO AL EXCEL
+        function guardarAsignacion() {
+            const nombre = document.getElementById('modal-nombre').value;
+            const fecha = document.getElementById('modal-fecha').value;
+            const tema = document.getElementById('modal-tema').value;
+
+            if(!fecha || !tema) {
+                alert("Por favor completa la fecha y el tema.");
+                return;
             }
-            
-            renderizarLista(datosFiltrados);
+
+            // Cambiar texto a enviando...
+            document.getElementById('btn-guardar-txt').innerText = "Guardando...";
+            document.getElementById('btn-guardar-txt').disabled = true;
+
+            // Enviar datos al script
+            const urlConDatos = `${API_URL}?action=registrar&nombre=${encodeURIComponent(nombre)}&fecha=${encodeURIComponent(fecha)}&tema=${encodeURIComponent(tema)}`;
+
+            fetch(urlConDatos)
+                .then(response => response.json())
+                .then(data => {
+                    cerrarModal();
+                    document.getElementById('btn-guardar-txt').innerText = "Guardar";
+                    document.getElementById('btn-guardar-txt').disabled = false;
+                    
+                    // Recargar datos para que se actualice la tarjeta y el calendario
+                    cargarDatos();
+                })
+                .catch(error => {
+                    alert("Hubo un error al guardar. Intenta de nuevo.");
+                    document.getElementById('btn-guardar-txt').innerText = "Guardar";
+                    document.getElementById('btn-guardar-txt').disabled = false;
+                });
         }
     </script>
 </body>
